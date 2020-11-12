@@ -58,3 +58,83 @@ nginx模块结构图![nginx模块结构图](/img/3.png)
 
 ### nginx的配置文件结构
 nginx的配置文件结构![配置文件结构](/img/4.png)
+
+### 配置文件main段核心参数用法
+参考lesson1
++ 全局段核心参数
++ user USERNAME [GROUP]
+    1. 解释：指定运行nginx的worker子进程的属主和属组，其中属组可以不指定
+    2. 实例 `user nginx nginx`
++ pid DIR
+    1. 解释：指定运行nginx的master主进程的pid文件存放路径
+    2. 示例 `pid /opt/nginx/logs/nginx.pid;`
++ worker_rlimit_nofile number
+    1. 解释：指定worker子进程可以打开的最大文件句柄数
+    2. 示例：`worker_rlimit_nofile:20480;`
++ worker_rlimit_core size
+    1. 解释：指定worker子进程异常终止后的core文件，用于记录分析问题
+    2. 示例：`worker_rlimit_core 50M;` `working_directory /opt/nginx/tmp;`
++ worker_processes number|auto
+    1. 解释：指定nginx启动的worker子进程数量
+    2. 示例：`worker_processes 4`  `worker_prcesses auto`
++ worker_cpu_affinity cpumask1 cpumask2...
+    1. 解释：将每个worker子进程与我们的cpu无力核心绑定
+    2. 示例： 
+    ```
+    worker_cpu_affinity 0001 0010 0100 1000;四个物理核心，四个worker子进程
+    worker_cpu_affinity 00000001 00000010 00000100 00001000 00010000 00100000 01000000 10000000；八个物理核心，八个worker子进程
+    worker_cpu_affinity 01 10 01 10；两个物理核心，四个worker子进程
+    ```
+    备注：将每个worker子进程与特定cpu物理核心绑定，优势在于：避免同一个worker子进程在不同的cpu核心上切换，缓存失效，降低性能。其并不能真正的避免进程切换。
++ worker_priority number
+    1. 解释：指定worker子进程的nice值，以调整运行nginx的优先级，通常设定为负值，以优先调用nginx
+    2. 示例：`worker_priority -10`;
+    3. 备注：linux默认进程的优先级值是120，值越小越优先；nice设定范围为-20到+19
++ worker_shutdown_timeout time
+    1. 解释：指定worker子进程优雅退出时的超时时间
+    2. 示例：`worker_shutdown_timeout 5s`
++ timer_resolution intcrval
+    1. 解释：worker子进程内部使用的计时器精度，调整时间间隔越大，系统调用越少，有利于性能提升；反之，系统调用越多，性能下降
+    2. 示例 `timer_resolution 100ms`
++ daemon on|off
+    1. 解释：设定nginx的运行方式，前台还是后台，前台用于调试，后台用于生产
+    2. 示例：`daemon on`
+
+### 配置文件events段核心参数用法
+参考lesson1
++ use-->nginx使用何种事件驱动模型
+    1. 语法：use method
+    2. method可选值: select,poll,kqueue,epoll,/dev/poll,eventport
+    3. 默认配置：无
+    4. 推荐配置：不指定，让nginx自己选择
++ worker_connections-->worker子进程能够处理的最大并发连接数
+    1. 语法：worker_connections 1024
+    2. 推荐配置：worker_connections 65535/worker_procsses|65535
++ accept_mutex-->是否打开负载均衡互斥锁
+    1. 语法：accept_mutex on|off
+    2. 可选值：on|off
+    3. 默认配置：accept_mutex off；
+    4. 推荐配置： accept_mutex on；
++ accept_nutex_delay-->新连接分配给worker子进程的超时时间
+    1. 语法：accept_mutex_delay time
+    2. 默认配置：accept_mutex_delay 500ms
+    3. 推荐配置：accept_mutex_delay 200ms
++ lock_file-->负载均衡互斥锁文件存放路径
+    1. 语法：lock_file file
+    2. 默认配置 lock_file logs/nginx.lock
++ muti_accept-->worker子进程可以接收的新连接个数
+    1. 语法：muti_accept on|off
+    2. 可选值：on|off
+    3. 默认配置：muti_accept off；
+    4. 推荐配置： muti_accept on； 
+
+
+
+### 配置文件server_name指令用法
+参考lesson1
++ 语法结构：server_name name1 name2 name3...;
+    1. 示例: server_name www.nginx.com 精确匹配
+    2. 示例: server_name *.nginx.org
+    3. 示例: server_naem ~^www\.imooc\.*$
+
+### server_name指令优先级
