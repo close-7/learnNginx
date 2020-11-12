@@ -18,4 +18,4 @@ Nginx是一款轻量级的Web 服务器/反向代理服务器及电子邮件（I
 + rpm -ql nginx 查看文件
 
 ### Nginx 进程结构
-多进程![avatar](../1.jpg)
+多进程![avatar](//1.png)
