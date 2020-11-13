@@ -1,0 +1,38 @@
+
+
+	proxy_pass	URL
+	
+		要点：URL结尾有无/
+		
+		(1)、不带/		http://127.0.0.1
+			
+			location /proxy/ {
+				proxy_pass http://127.0.0.1:8008;
+			}
+			
+			解释：上游服务器的URL末尾不带/则转发到上游服务，请求URL会被透传到上游服务器
+			示例：假如上图中请求/proxy/abc/test.html，经代理后转发到上游URL依然是/proxy/abc/test.html
+			
+		(2)、带/		http://127.0.0.1/
+		
+			location /proxy/ {
+				proxy_pass http://127.0.0.1:8080/;
+				
+			解释：上游服务器的URL末尾带/则转发到上游服务，URL中的location匹配部分会被删除掉
+			示例：例如上图中请求到Nginx是/proxy/abc/test.html，经代理后转发到上游URL则变成/abc/test.html
+			
+			
+	Nginx修改用户发来的请求行和请求包体
+	
+		请求行：
+			proxy_method method ;
+			proxy_http_version 1.0|1.1 ;
+		请求头：
+			proxy_set_header field value ;		# 若修改后的field的value为空，则Nginx不会将该头部字段发送到上游服务器
+			proxy_pass_request_headers on | off ;	# on Nginx透传用户请求头部给上游服务器；off Nginx不发送用户请求头部给上游服务器
+		
+			proxy_set_body
+			proxy_pass_request_body				
+		
+		
+		
