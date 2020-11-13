@@ -222,3 +222,96 @@ Reading: 0 Writing: 1 Waiting:1
 2. request是请求，例如http请求，无状态的协议
 3. request是必须建立在connection之上
 4. 图片示例![avatar](/img/5.png)
+
+### limit_conn模块-connection链接限制模块
+参考limit_conn文件夹
++ 基本功能
+    1. 用于限制客户端默认连接数
+    2. 默认编译进nginx，通过`--without-http_limit_conn_module`禁用
+    3. 使用共享内存，对所有worker子进程生效
++ 常用指令
+    1. limit_conn_zone-定义共享内存空间
+        + 语法：limit_conn_zone key zone = name.size
+        + 上下文：http
+        + 示例 `limit_conn_zone $binary_remote_addr zone=limit_addr:10m;`
+    2. limit_conn_status-定义限制行为发生时返回给客户端的状态
+        + 语法：limit_conn_status code
+        + 默认值：limit_conn_status 503
+        + 上下文：http server location
+        + 示例：`limit_conn_status 503;`
+    3. limit_conn_log_level-定义限制行为发生时日子记录等级
+        + 语法：limit_conn_log_level info|notice|warn|error
+        + 默认值：limit_conn_log_level warn;
+        + 上下文：http server location 
+    4. limit_conn-真正定义限制客户端并发连接数
+        + 语法：limit_conn zone number
+        + 上下文：http server location
+
+### limit_req模块-request请求限制模块
+参考limit_req文件夹
++ 基本功能
+    1. 用于限制客户端处理请求的平均速率
+    2. 默认编译进nginx，通过`--without-http_limit_req_module`禁用
+    3. 使用共享内存，对所有worker子进程生效
+    4. 限流算法： leaky_bucket ![leaky_bucket](/img/6.png)
++ 常用指令
+    1. limit_req_zone-定义共享内存空间
+        + 语法：limit_req_zone key zone = name.size rate=rate
+        + 上下文：http
+        + 示例 `limit_req_zone  $binary_remote_addr zone=limit_req:15m rate=12r/m;` 
+    2. limit_req_status-定义限制行为发生时返回给客户端的状态
+        + 语法：limit_req_status code
+        + 默认值：limit_req_status 503
+        + 上下文：http server location
+        + 示例：`limit_req_status 503;` 
+    3. limit_req_log_level-定义限制行为发生时日子记录等级
+        + 语法：limit_req_log_level info|notice|warn|error
+        + 默认值：limit_req_log_level error;
+        + 上下文：http server location 
+    4. limit_req-真正定义限制客户端并发连接数
+        + 语法：limit_req zone=name [burst=number] [nodelay|delay=number]
+        + 上下文：http server location
+        + 示例：`limit_req zone=limit_req;`
+
+### access模块-限制特定ip或网段访问
+参考access文件夹
++ allow指令--放行
+    1. 语法结构：allow address | CIDR | UNIX | all;
+    2. 上下文：http server location limit_except
+    3. 示例1：`allow 192.168.0.10`
++ deny指令--阻止
+    1. 语法结构：deny address | CIDR | UNIX | all;
+    2. 上下文：http server location limit_except
+    3. 示例1：`deny 192.168.0.0/24`
++ 组合示例
+```
+location / {
+    deny 192.168.1.1;
+    allow 192.168.1.0/24;
+    allow 10.1.1.0/16;
+    allow 2001:0db8::/32;
+    deny all;
+}
+```
+
+### auth_basic模块-限制特定用户访问
+参考auth_basic文件夹
++ 基本功能
+    1. 基于HTTP Basic Authentication协议进行用户名密码认证
+    2. 默认编译进nginx，通过`--without-http_auth_basic_module`禁用 
++ 常用指令
+    1. auth_basic--定义是否开启用户名密码验证功能
+        + 语法：auth_basic string|off
+        + 默认值：auth_basic off;
+        + 上下文：http server location limitz_except
+    2. auth_basic_user_file--定义是存储用户名密码的文件
+        + 语法：auth_basic_user_file file
+        + 默认值：-
+        + 上下文：http server location limitz_except
++ 生成密码文件工具
+    1. 可执行程序 htpasswd
+    2. 所属软件包 httpd-tools
+    3. 生成密码文件 `htpasswd -bc encrypt_pass jack 12345`
+    4. 添加新用户密码 `htpasswd -b encrypt_pass mike 12345`
+
+
