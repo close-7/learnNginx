@@ -314,4 +314,152 @@ location / {
     3. 生成密码文件 `htpasswd -bc encrypt_pass jack 12345`
     4. 添加新用户密码 `htpasswd -b encrypt_pass mike 12345`
 
+### auth_request模块-基于HTTP响应状态码做权限控制
+参考auth_request文件夹
++ 功能及原理![auth_request](/img/7.png)
++ 启用禁用：默认未编译进nginx，通过`--with-http_auth_request_module`启用
++ 常用指令
+    1. auth_request --定义是否开启用模块
+        + 语法：auth_request uri|off
+        + 默认值：auth_request off
+        + 上下文：http server location 
+    2. auth_basic_set--定义是存储用户名密码的文件
+        + 语法：auth_basic_set $variable value
+        + 默认值：-
+        + 上下文：http server location 
+
+
+### rewrite模块--实现对url重写
+参考rewrite文件夹
+#### rewrite模块中的return指令
+参考rewrite文件夹中return.conf
++ return功能
+    1. 停止处理请求，直接返回响应码或者重定向到其他URL
+    2. 执行return指令后，location中后续指令将不会执行
+    3. 示例 `location / {.... return 404; ....}`
+
++ return语法结构
+    1. 语法： return code[text];return code URL;return URL;
+    2. 默认值： -
+    3. 上下文：server location if
+
++ HTTP状态码
+    1. 1xx：消息类
+    2. 2xx：成功
+    3. 3xx：重定向
+        + 301:永久重定向
+        + 302：临时重定向
+    4. 4xx: 客户端错误
+    5. 5xx：服务器错误
+
+#### rewrite模块中的rewrite指令
+参考rewrite文件夹中rewrite.conf
++ rewrite功能
+    1. 根据指定正则表达式匹配规则，重写URL
+
++ rewrite语法结构
+    1. 语法： rewrite regex replacement [flag];
+    2. 默认值： -
+    3. 上下文：server location if
+    4. 示例：`rewrite /images/(.*\.jpg)$ /pic/$1`;
+
++ flag可选值及含义
+    1. last 重写后的URL发起新请求，再此进入server段，重试location中的匹配
+    2. break 直接使用重写后的URL，不再匹配其他location中语句
+    3. redirect 返回302临时重定向
+    4. permanent 返回301永久重定向
+
++ rewrite执行顺序
+
+
+#### rewrite模块中的if指令
+参考rewrite文件夹中if.conf
++ if 功能
+    1. 对某些条件进行判断，根据变量值不同，对url进行不同处理
++ if 语法结构
+    1. 语法： if (condition) {}
+    2. 默认值： -
+    3. 上下文：server location 
+    4. 示例：`if($http_user_agent~Chrome){rewrite /(.*)/browser/$1 break;}`;
+
++ condition用法
+    1. $variable 仅为变量时，值为空或以0开头字符串都会被当做false处理
+    2. = | != 相等或不等比较
+    3. ~ | !~ 正则匹配或非正则匹配
+    4. ~* 正则匹配，不区分大小写
+    5. -f | !-f 检查文件存在或不存在
+    6. -d | !-d 检查目录存在或不存在
+    7. -e | !-e 检查文件，目录，符号链接等存在或不存在
+    8. -x | !-x 检查文件可执行或不可执行
+
+
+### autoindex模块用法
+参考autoindex文件夹中
++ 基本功能
+    1. 用户请求以/结尾时，列出目录结构
++ 常用指令
+    1. autoindex--是否开启列出
+        + 语法：autoindex on|off 
+        + 默认值：autoindex off
+        + 上下文：http server location
+    2. autoindex_exact_size--是否显示文件大小（字节）
+        + 语法：autoindex_exact_size on|off 
+        + 默认值：autoindex_exact_size on
+        + 上下文：http server location
+    3. autoindex_format--返回目录结构以哪种形式
+        + 语法：autoindex_format html|xml|json|jsonp
+        + 默认值：autoindex_format html
+        + 上下文：http server location
+    4. autoindex_localtime--返回目录结构时间格式
+        + 语法：autoindex_localtime on|off 
+        + 默认值：autoindex_localtime off
+        + 上下文：http server location
+
+
+### Nginx变量分类
+参考 var文件夹
++ TCP连接产生的变量
+    1. remote_addr 客户端IP地址
+    2. remote_port 客户端端口
+    3. server_addr 服务端IP地址
+    4. server_port 服务端端口
+    5. server_protocol 服务端协议
+    6. connection TCP连接的序号，递增
+	7. connection_request TCP连接当前的请求数量，对于keepalive连接有意义
+	8. proxy_protocol_addr 如果使用proxy_protocol协议，则返回原始用户的地址，否则为空
+	9. proxy_protocol_port 如果使用proxy_protocol协议，则返回原始用户的端口，否则为空
+    10. binary_remote_addr 二进制格式的客户端IP地址
++ HTTP请求过程中的常用变量
+    1. uri 请求的url，不包含参数
+    2. request_uri 请求的url，包含参数
+    3. scheme 协议名，http或https
+    4. request_method 请求方法
+    5. request_length 全部请求的长度，包括请求行，请求头，和请求体
+    6. args 全部参数字符串
+    7. arg_参数名 特定参数值
+    8. is_args URL中有参数则返回？；否则返回空
+    9. query_string 与args相同
+    10. remote_user 由HTTP Basic Authentiction协议传入的用户名
++ HTTP请求过程中的特殊变量
+    1. host 先看请求行，再看请求头，最后找server_name
+    2. http_user_agent 用户浏览器
+    3. http_referer 从哪些链接过来的请求
+    4. http_via 经过一层代理服务器，添加对应代理服务器的信息
+    5. http_x_forwarded_for 获取用户真实ip
+    6. http_cookie 用户cookie
++ Nginx处理HTTP请求产生的变量
+    1. request_time 处理请求已消耗的时间
+    2. request_completion 请求处理完成返回ok，否则返回空
+    3. server_name 匹配上请求的server_name值
+    4. https 若开启https，则返回on，否则返回空
+    5. request_filename 磁盘文件系统待访问文件的完整路径
+    6. document_root 由uri和root/alias规则生成的文件夹路径
+    7. realpath_root 讲document_root中的软连接换成真实路径
+    8. limit_rate 返回响应时的速度上限值
++ Nginx返回响应的变量
++ Nginx内部运行时的变量
+
+
+
+
 

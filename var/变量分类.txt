@@ -1,0 +1,55 @@
+
+	HTTP框架提供的变量：
+	
+		1、TCP连接相关变量
+		
+			remote_addr				客户端地址，例如192.168.1.1
+			remote_port				客户端端口，例如58473
+			binary_remote_addr		客户端地址的整型格式
+			connection				已处理连接，是一个递增的序号
+			connection_request		当前连接上执行的请求数，对于keepalive连接有意义
+			proxy_protocol_addr		如果使用proxy_protocol协议，则返回原始用户的地址，否则为空
+			proxy_protocol_port		如果使用proxy_protocol协议，则返回原始用户的端口，否则为空
+			server_addr				服务器地址，例如192.168.184.240
+			server_port				服务器端口,例如80
+			server_protocol			服务端协议，例如HTTP/1.1
+			
+		
+		2、HTTP请求相关变量
+		
+			conten_length	请求包体头部长度
+			content_type	请求包体类型
+			arg_参数名		URL中某个参数
+			args			所有URL参数
+			is_args			URL中有参数，则返回?；否则返回空
+			query_string	与args完全相同
+			uri				请求的URL，不包含参数
+			request_uri		请求的URL，包含参数
+			scheme			协议名，http或者https
+			request_method	请求的方法，GET、HEAD、POST等
+			request_length	所有请求内容的大小，包含请求行，头部，请求体
+			remote_user		由HTTP Basic Authentication协议传入的用户名
+			request_body_file	暂缺
+			request_body		暂缺
+			request				暂缺
+		
+		3、Nginx处理请求时相关变量
+		
+			request_time				请求处理到现在所耗费的时间，单位为秒，例如0.03代表30毫秒
+			request_completion			请求处理完成，则返回OK，否则为空
+			request_id					16进制显示的请求id，随机生成的
+			server_name					匹配上请求的server_name值
+			https						若开启https，则值为on,否则为空
+			request_filename			待访问文件的完整路径
+			document_root				由URI和root/alias规则生成的文件夹路径
+			realpath_root				将document_root中的软链接换成真实路径
+			limit_rate					返回响应时的速度上限值
+		
+		4、Nginx返回响应时相关变量
+		
+			body_bytes_sent				响应体中真实内容的大小	
+			body_sent					全部响应体大小
+			status						HTTP返回状态码
+			
+		
+		5、系统变量
