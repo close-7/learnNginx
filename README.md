@@ -138,3 +138,87 @@ nginx的配置文件结构![配置文件结构](/img/4.png)
     3. 示例: server_naem ~^www\.imooc\.*$
 
 ### server_name指令优先级
++ 精确匹配最高
++ 左侧通配符匹配
++ 右侧通配符匹配
++ 正则匹配最低
+
+### root和alias指令用法区别
+参考文件夹root&alias
++ 语法结构：
+    1. root：
+        + 语法：root path；
+        + 上下文：http server location if
+    2. alias：
+        + 语法 alias path
+        + 上下文：location
+
++ 相同点：URI到磁盘文件的映射
++ 区别：root会将定义路径与URI叠加；alias则只取定义路径
++ 示例1：
+```
+location /picture{
+    root /opt/nginx/html/picture;
+}
+客户端请求www.test.com/picture/1.jpg，则对应磁盘映射
+路径/opt/nginx/html/picture/picture/1.jpg
+```
++ 示例2：
+```
+location /picture{
+    alias /opt/nginx/html/picture;
+}
+客户端请求www.test.com/picture/1.jpg，则对应磁盘映射
+路径/opt/nginx/html/picture/1.jpg
+```
++ 注意 使用alias时，末尾一定要加/;alias只能位于location中
+
+
+### location的基础用法
+参考文件夹location
++ 语法结构：location [=|~|~*|^~] uri {...}
++ 上下文：server location
++ 匹配规则及含义：
+    1. = 精准匹配：location=/images/{...}
+    2. ~ 正则匹配区分大小写：location ~ \.(jpg|gif)${...}
+    3. ~* 正则匹配不区分大小写：location ~* \.(jpg|gif)${...}
+    4. ^~ 匹配到即停止搜索：location ^~/images/{...}
+    5. 不带任何符号：location / {...}
+
+### location规则的匹配顺序
++ =
++ ^~
++ ~
++ ~*
++ 不带任何字符
+
+### location中URL结尾的反斜线
++ 不带/:location /test{}   -->找test文件夹，如果没有则视为test文件查找
++ 带/:location /test/{} --》找test文件夹，没有则返回404
+
+### stub_status模块的用法
++ 指令： stub_status;
++ 低于1.5.7：stub_status on;
++ 上下文：server location;
++ 示例：`location /uri {stub_status}`
++ 效果示例
+```
+Active connections:2
+server accepts handled requests
+883 883 928
+Reading: 0 Writing: 1 Waiting:1
+```
++ 状态项及含义
+    1. Active connections：活跃的链接数量
+    2. accepts 接受的客户端连接总数
+    3. handled 处理的客户端连接总数
+    4. requests 客户端总的请求数量
+    5. Reading 读取客户端的连接数
+    6. Writing 响应数据到客户端的连接数
+    7. Waiting 空闲客户端请求连接数量
+
+### connection和request
+1. connection是连接，及常说的tcp连接，三次握手，状态机
+2. request是请求，例如http请求，无状态的协议
+3. request是必须建立在connection之上
+4. 图片示例![avatar](/img/5.png)
